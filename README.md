@@ -3,3 +3,5 @@
  
  The tool is a command-line Java jar file. It needs mCRL2 installed to execute some of its task.
  
+ Example logs can found in the zip file called "logs".
+ 
