@@ -3,7 +3,7 @@ PALM, Process ALgebraic specification Mining, is a tool to mine mCRL2 formal spe
 The tool is a command-line Java jar file.
 
 ## Prerequisite
-It needs [mCRL2](https://www.mcrl2.org/web/user_manual/download.html) installed to execute most of its task.
+It needs [mCRL2](https://www.mcrl2.org/web/user_manual/download.html) installed.
 
 ## Using
 To run the jar file on the terminal use the command: java -jar palm_v1.jar.
