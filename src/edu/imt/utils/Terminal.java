@@ -44,8 +44,8 @@ public class Terminal {
 			dir.mkdir();
 		path = dir.toURI().getPath();
 		while (true) {
-			System.out.println("Press: \n" + "1 ->Mining tool-indipendet specification \n"
-					+ "2-> Mining aggregation specification \n" + "3-> Repeat experiments");
+			System.out.println("Press: \n" + "1->Mining tool-indipendet specification \n"
+					+ "2->Mining aggregation specification \n" + "3->Repeat experiments\n" + "4->Exit");
 			int i = scan.nextInt();
 			switch (i) {
 			case 1: {
@@ -60,7 +60,7 @@ public class Terminal {
 				int th = scan.nextInt();
 				String mcrl2File = miningSpecification(log, th);
 				otherMenu(log.getEventMap(), f, mcrl2File);
-				break;
+				continue;
 			}
 			case 2: {
 				File directory = scanFile("Insert directory logs to aggregate:");
@@ -68,13 +68,15 @@ public class Terminal {
 				int th = scan.nextInt();
 				Pair<Map<String, String>, String> mapandfile = aggregation(directory, th);
 				otherMenu(mapandfile.getKey(), directory, mapandfile.getValue());
-				break;
+				continue;
 			}
 			case 3: {
 				List<String> titleXes = Lists.newArrayList("Model Name", "Discovery algorithm", "Loop frequency",
 						"Mining Time (s)", "MC Fitness", "Equivalence");
 				File[] arrDirectories = new File[] { new File("logs/test/synthetic/log1"),
-						new File("logs/test/synthetic/log2"), new File("logs/test/synthetic/log3") };
+						new File("logs/test/synthetic/log2"), new File("logs/test/synthetic/log3"),
+						new File("logs\test\real\rlog3"), new File("logs\test\real\rlog4"),
+						new File("logs\test\real\rlog5"), new File("logs\test\real\rlog6") };
 				FileWriter fw;
 				try {
 					fw = new FileWriter(FILE_EXP);
@@ -89,14 +91,11 @@ public class Terminal {
 				}
 			}
 				break;
+			case 4:
+				return;
 			default:
-				throw new IllegalArgumentException("Unexpected value: " + i);
+				System.out.println("Wrong insertion, try again...");
 			}
-			System.out.println(" Press \"Y\" to continue or \"N\" to exit");
-			scan = new Scanner(System.in);
-			String r = scan.nextLine();
-			if (isExit(r))
-				break;
 		}
 	}
 
@@ -118,24 +117,20 @@ public class Terminal {
 				switch (i) {
 				case 1: {
 					measureFitness(log, lps);
-					break;
+					continue;
 				}
 				case 2: {
 					String namef2 = scanFile("Insert path second model").getAbsolutePath();
 					checkEquivalence(lps, namef2);
-					break;
+					continue;
 				}
 				case 5: {
+					removeFile(new File(lps));
 					return;
 				}
 				default:
-					throw new IllegalArgumentException("Unexpected value: " + i);
+					System.out.println("Wrong insertion, try again...");
 				}
-				System.out.println(" Press \"Y\" to continue or \"N\" to go back at the main menu\n");
-				scan = new Scanner(System.in);
-				String r = scan.nextLine();
-				if (isExit(r))
-					break;
 			}
 		} catch (Exception e) {
 			new FileNotFoundException();
@@ -332,19 +327,6 @@ public class Terminal {
 		return filename.replace(FileExtension.LPS.getExtension(), FileExtension.LTS.getExtension());
 	}
 
-	private static String fromlps2pbes(String filename, String formula) {
-		String lps2pbes = "lps2pbes -c -f " + formula + " " + filename + " "
-				+ filename.replace(FileExtension.LPS.getExtension(), FileExtension.PBES.getExtension());
-		runmcrlcommand(lps2pbes);
-		return FilenameUtils.getBaseName(filename) + "." + FileExtension.PBES.getExtension();
-
-	}
-
-	private static void frompbes2bool(String lpsFile, String pbesFile) {
-		String pbes2bool = "pbes2bool --file=" + lpsFile + " " + pbesFile;
-		runmcrlcommand(pbes2bool);
-	}
-
 	private static String frommcrl22lps(String filename) {
 		String mcrl22lps = "mcrl22lps -v -lstack -rjitty " + filename + " "
 				+ filename.replace(FileExtension.MCRL2.getExtension(), FileExtension.LPS.getExtension());
@@ -374,7 +356,9 @@ public class Terminal {
 		}
 		runmcrlcommand(command);
 		String pbes2bool = "pbes2bool " + FilenameUtils.getBaseName(f1) + "." + FileExtension.PBES.getExtension();
-		return runmcrlcommand(pbes2bool);
+		String result = runmcrlcommand(pbes2bool);
+		removeFile(new File(f1.replace(FileExtension.LTS.getExtension(), FileExtension.PBES.getExtension())));
+		return result;
 	}
 
 	private static String fromSGtoMCRL2(File f, Map<String, String> map) {

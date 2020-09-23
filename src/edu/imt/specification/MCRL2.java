@@ -233,67 +233,68 @@ public class MCRL2 {
 	 * @param b the block structure
 	 */
 	public void fromBlockStrucutureToMcrl2Processes(BlockStructure b, int threshold) {
-		Pair<String, Map<String, String>> pair = T(b, threshold, new HashMap<String, String>());
+		String pair = T(b, threshold);
 		String initName = Utils.getProcessName();
-		procspec.put(initName, pair.getValue0());
+		procspec.put(initName, pair);
 		initSet.add(initName);
-		for (Entry<String, String> p : pair.getValue1().entrySet())
-			procspec.put(p.getValue(), p.getKey());
-
+		for (Entry<String, String> p : foldL.entrySet())
+			procspec.put(p.getValue(), p.getKey() + Operator.SEQUENCE.getOperator() + p.getValue()
+					+ Operator.CHOICE.getOperator() + TAU.getName());
+		for(Entry<String,String> entry : unfoldL.entrySet()) {
+			procspec.put(entry.getValue(), entry.getKey());
+		}
 	}
 
-	private Pair<String, Map<String, String>> T(BlockStructure b, int threshold, Map<String, String> map) {
+	// Process loop - name loop
+	private Map<String, String> unfoldL = new HashMap<String, String>();
+	private Map<String, String> foldL = new HashMap<String, String>();
+
+	private String T(BlockStructure b, int threshold) {
 		if (b.isEmpty()) {
-			return Pair.with(TAU.getName(), new HashMap<String, String>());
+			return TAU.getName();
 		} else if (b.hasEvent()) {
 			Event e = b.getEvent();
 			if (!e.getClass().equals(EventTemp.class)) {
 				actSet.add(e);
 				allowedAction.add(e);
 			}
-			return Pair.with(e.getName(), new HashMap<String, String>());
+			return e.getName();
 		} else {
-			// Process loop - name loop
-			Map<String, String> setK = map;
 			String s = "";
-			Pair<String, Map<String, String>> tmp;
+			String tmp;
 			if (b.getOp().equals(Operator.LOOP)) {
 				String loop = "";
 				for (int i = 0; i < b.size(); i++) {
-					tmp = T(b.getBlock(i), threshold, setK);
+					tmp = T(b.getBlock(i), threshold);
 					if (!loop.isEmpty())
 						loop = loop.concat(Operator.CHOICE.getOperator());
-					loop = loop.concat(tmp.getValue0());
-					if (!tmp.getValue1().isEmpty())
-						setK.putAll(tmp.getValue1());
+					loop = loop.concat(tmp);
 				}
-				// L = l.L + tau;
-				String processloop;
-				if (b.getFrequency() >= threshold)
-					processloop = loop + Operator.SEQUENCE.getOperator() + s + Operator.CHOICE.getOperator()
-							+ TAU.getName();
-				else
-					processloop = unrollLoop(loop, b.getRepetition());
-				if (!setK.containsKey(processloop)) {
-					s = Utils.getProcessName();
-					setK.put(processloop, s);
+				if (b.getFrequency() < threshold) {
+					loop = unrollLoop(loop, b.getRepetition());
+					if (unfoldL.containsKey(loop)) {
+						s = unfoldL.get(loop);
+					} else {
+						s = Utils.getProcessName();
+						unfoldL.put(loop, s);
+					}
 				} else {
-					s = setK.get(processloop);
+					if (!foldL.containsKey(loop)) {
+						s = Utils.getProcessName();
+						foldL.put(loop, s);
+					} else
+						s = foldL.get(loop);
 				}
-
 			} else {
 				for (int i = 0; i < b.size(); i++) {
-					tmp = T(b.getBlock(i), threshold, setK);
+					tmp = T(b.getBlock(i), threshold);
 					if (!s.isEmpty())
 						s = s.concat(b.getOp().getOperator());
-					s = s.concat(tmp.getValue0());
-					if (!tmp.getValue1().isEmpty())
-						setK.putAll(tmp.getValue1());
-					// setK.addAll(tmp.getValue1());
+					s = s.concat(tmp);
 				}
 				s = "(" + s + ")";
 			}
-			return Pair.with(s, setK);
+			return s;
 		}
 	}
 

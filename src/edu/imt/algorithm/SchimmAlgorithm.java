@@ -107,7 +107,7 @@ public class SchimmAlgorithm {
 
 						int occ = 0;
 						do {
-							Triple<Trace, Integer, Integer> triple = t.getSubTrace(e, ei);
+							Triple<Trace, Integer, Integer> triple = t.getSubTrace(e, ei, loopSet.getName());
 							loopTrace = triple.getLeft();
 							lenght += loopTrace.length();
 							loopTrace.setHBrel(t.getSubHBrel(loopTrace));
@@ -122,7 +122,6 @@ public class SchimmAlgorithm {
 							 * right side of the trace then add it to the trace and updates the
 							 * happened-before relation with e_i>e and e> e_j
 							 */
-
 							if (start_index == 0 || !t.getEvent(start_index - 1).equals(loopSet.getName())) {
 								t.add(start_index, loopSet.getName());
 								if (start_index > 0)
@@ -134,7 +133,7 @@ public class SchimmAlgorithm {
 									t.addPostHBRelation(t.getEvent(start_index), loopSet.getName());
 							}
 
-						} while (!t.getSubTrace(e, ei).getLeft().isEmpty());
+						} while (!t.getSubTrace(e, ei,loopSet.getName()).getLeft().isEmpty());
 						loopSet.setRepetition(occ);
 						t.addLoopWithFrequency(loopSet.getName().getName(), lenght);
 						i--;
@@ -411,8 +410,6 @@ public class SchimmAlgorithm {
 			bl.setFrequency(log.getFrequencyLoop(l));
 			loopNametoLoopBS.put(l.getName(), bl);
 		}
-		
-
 		return replaceReferences(replaceReferenceLoop(loopNametoLoopBS), b);
 	}
 	

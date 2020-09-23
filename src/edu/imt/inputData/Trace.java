@@ -376,13 +376,13 @@ public class Trace implements Iterable<Event> {
 	}
 
 	/**
-	 * Gives the subtrace included between two events
+	 * Gives the subtrace included between two events, if exists, excluding the given loopname
 	 * 
 	 * @param first, event to be in the trace
 	 * @param last,  event to be in the trace
 	 * @return the trace if exists otherwise an empty trace
 	 */
-	public Triple<Trace,Integer,Integer> getSubTrace(Event first, Event last) {
+	public Triple<Trace,Integer,Integer> getSubTrace(Event first, Event last, Event loopName) {
 		Trace subTrace = new Trace();
 		int findFirst = -1;
 		int findLast = -1;
@@ -390,8 +390,13 @@ public class Trace implements Iterable<Event> {
 			if (trace.get(i).equals(first)) {
 				findFirst = i;
 				subTrace = new Trace();
-			}if (findFirst!= -1)
+			}if (findFirst!= -1) {
+				if(trace.get(i).equals(loopName)) {
+					findFirst = -1;
+					subTrace = new Trace();
+				}
 				subTrace.add(trace.get(i));
+			}
 			if (trace.get(i).equals(last) && (findFirst!=-1)) {
 				findLast = i;
 				break;
