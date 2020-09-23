@@ -6,7 +6,7 @@ The tool is a command-line Java jar file.
 It needs [mCRL2](https://www.mcrl2.org/web/user_manual/download.html) installed to execute most of its task.
 
 ## Using
-On running the jar file a first menu is opened:
+On running the jar file a first menu is opened, insert in the terminal the number corresponding to the action that you want to execute (1, 2 or 3):
 
 **1 -> Mining too-independent specification**, to generate from an evnetlog a mCRL2 specification. As a first step the user is asked to insert the path of the eventlog to analyze, that is the absolute path to the file ".xes"(C:\Users\myuser\...\logtoanalyze.xes) and then to set the loop threshold, i.e. every loop with frequency < threshold will be unrolled, else loop with frequency > threshold are written has recursive processes.  This process generates the mCRL2 specification and at the end opens a new menu that gives the possibility to:
 
