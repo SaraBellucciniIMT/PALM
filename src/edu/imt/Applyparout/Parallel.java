@@ -1,45 +1,27 @@
 package edu.imt.Applyparout;
 
-import edu.imt.specification.operators.Operator;
-import edu.imt.specification.operators.Process;
+import edu.imt.specification.structure.BlockStructure;
+import edu.imt.specification.structure.Operator;
 
-public class Parallel extends AbstractParout{
+/**
+ * Applies the Tp function over the block structure b by applying the Tp
+ * function over every block inside this block.
+ * 
+ * @see Parallel#interpreter(BlockStructure)
+ * @author S. Belluccini
+ */
+
+public class Parallel extends AbstractParout {
 
 	@Override
-	public Process interpreter(Process p) {
-		/*System.out.println("Eliminando il parallel");
-		ApplyParout.somma =0;
-		ApplyParout.countPar(p);
-		System.out.println("inizio par inizion con par: " + ApplyParout.somma);
-		ApplyParout.somma =0;*/
+	public BlockStructure interpreter(BlockStructure block) {
+
+		BlockStructure b = new BlockStructure(Operator.PARALLEL);
 		
-		Process parallelProcess = null;
-		for (Process process : p.getProcess()) {
-			if (process.getOp()!= null && process.getOp().equals(Operator.PARALLEL)) {
-				parallelProcess = process;
-				break;
-			}
-		}
-		Process father = new Process();
-		father.modifyProcessOp(Operator.PARALLEL);
-		int currentIndex = 0;
-		for (int i = 0; i < p.size(); i++) {
-			if (p.getProcess()[i].equals(parallelProcess)) {
-				for (Process pson : parallelProcess.getProcess()) {
-					father.insertProcessAtPosition(pson, currentIndex);
-					currentIndex += 1;
-				}
-			} else {
-				father.insertProcessAtPosition(p.getProcess()[i], currentIndex);
-				currentIndex += 1;
-			}
-		}
-		/*ApplyParout.somma =0;
-		ApplyParout.countPar(father);
-		System.out.println("rimuovi par finisco con par: " + ApplyParout.somma);
-		ApplyParout.somma =0;*/
-		
-		return father;
+		for (int i = 0; i < block.size(); i++)
+			b.addBlockAtPosition(ApplyParout.Tp(block.getBlock(i)), i);
+
+		return b;
 	}
 
 }

@@ -50,7 +50,15 @@ public class CoverabilityGraph {
 		return this.initialmarking;
 	}
 
+	/**
+	 * Adds a triple with input state, output state and action to the CG
+	 * @param s1 input state
+	 * @param s2 output state 
+	 * @param s3 action
+	 */
 	public void addTriple(String s1, String s2, String s3) {
+		//_.00 is the way that sg file use to indicate blanck spaces
+		s3=s3.replace("_.00", " ");
 		triple.add(Triple.of(s1, s2, s3));
 	}
 

@@ -1,0 +1,26 @@
+.model Coverability_.00Graph_.00of_.00Petri_.00net_.00from_.00log2s.xes_1589552155995.bpmn
+.dummy XOR_Activity_.00I Activity_.00A_XOR XOR_Activity_.00C start XOR_Activity_.00B Activity_.00I_XOR Activity_.00I AND Activity_.00F Activity_.00E end Activity_.00H Activity_.00G Activity_.00D_XOR Activity_.00B Activity_.00A Activity_.00D Activity_.00C
+.state graph
+s7 XOR_Activity_.00I s17
+s7 XOR_Activity_.00C s1
+s19 Activity_.00D_XOR s8
+s2 start s4
+s4 Activity_.00A s12
+s16 AND s3
+s6 Activity_.00B s13
+s0 AND s10
+s14 Activity_.00D s19
+s17 Activity_.00I s15
+s13 end s18
+s1 Activity_.00C s0
+s3 Activity_.00F s11
+s11 Activity_.00G s14
+s8 XOR_Activity_.00B s6
+s10 Activity_.00H s5
+s10 Activity_.00E s9
+s15 Activity_.00I_XOR s8
+s12 Activity_.00A_XOR s7
+s5 Activity_.00E s16
+s9 Activity_.00H s16
+.marking { s2 }
+.end

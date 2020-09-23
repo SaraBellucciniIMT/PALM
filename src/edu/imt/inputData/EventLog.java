@@ -1,98 +1,155 @@
 package edu.imt.inputData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
 import com.google.common.collect.Sets;
 
-public class EventLog {
-	
-	private List<Case> log = new ArrayList<Case>(); 
+import edu.imt.algorithm.LoopSet;
 
+/**
+ * This is the EventLog class that represent a log of traces of events
+ * @author S. Belluccini
+ */
+public class EventLog implements Iterable<Trace>{
+
+	/**
+	 * The log 
+	 */
+	private List<Trace> log;
+	/**
+	 *<RealName, Id>
+	 */
+	private Map<String,String> eventMap;
+
+	/**
+	 * Inizialize an empty log
+	 */
+	public EventLog() {
+		this.log = new ArrayList<Trace>();
+		this.eventMap = new HashMap<String,String>();
+	};
 	
-	public EventLog() {};
-	
-	public EventLog(List<Case> log) {
-		for(Case c : log) {
-			Case caso = new Case();
-			 for(int j=0; j<c.length(); j++) {
-				caso.add(new Event(c.getEvent(j).getName()));
-			 }
-			 caso.setHBrel(c.getHBRel());
-			 this.log.add(caso);
-		}
-		//this.log = Lists.newArrayList(log);
+	public EventLog(List<Trace> t) {
+		this.log = t;
+		this.eventMap = new HashMap<>();
+	}
+
+	/**
+	 * Add at the end of the list a trace t
+	 * @param t a trace of type Trace
+	 * @return 
+	 */
+	public void add(Trace t) {
+		this.log.add(t);
+	}
+
+	/**
+	 * Add at the end of the list a list of traces 
+	 * @param traces a list of trace of type Trace
+	 * @return 
+	 */
+	public void addAll(List<Trace> traces) {
+		this.log.addAll(traces);
+	}
+
+	public void addEventToMap(String realName, String id) {
+		this.eventMap.put(realName, id);
 	}
 	
-	public void add(Case c) {
-		this.log.add(c);
+	public boolean isInEventMap(String realName) {
+		return this.eventMap.containsKey(realName);
 	}
-	
-	public void addAll(List<Case> c) {
-		this.log.addAll(c);
-	}
-	public Iterator<Case> getIterator(){
-		return log.iterator();
-	}
-	
-	public Case getSingleCase() {
-		if(log.size() == 1)
-			return log.stream().findFirst().get();
-		else
-			return log.stream().findAny().get();
-	}
-	
-	public List<Case> getCase(){
+	/**
+	 * Give the list of traces in the log
+	 * @param 
+	 * @return a list of traces of type Trace
+	 */
+	public List<Trace> getTrace() {
 		return log;
 	}
-	public boolean containCase(Case c) {
-		for(Case casec : log) {
-			if(casec.equals(c))
-				return true;
-		}
-		return false;
+	
+	/**
+	 * Returns a map containing key=RealName value=Id of each event in the log
+	 * @return a map containing key=RealName value=Id of each event in the log
+	 */
+	public Map<String,String> getEventMap() {
+		return this.eventMap;
+	}
+
+	public String getIdEventMap(String realName) {
+		return this.eventMap.get(realName);
 	}
 	@Override
 	public String toString() {
 		return "EventLog [" + log + "]";
 	}
-	/*
-	 * Number of cases in the eventlog
+
+	/**
+	 * Give the number of traces in the eventlog
+	 * @return dimension of the log
 	 */
 	public int size() {
 		return this.log.size();
 	}
-	
-	public Set<Event> geAlphabet(){
+
+	/**
+	 * Give the name of all the events inside the log
+	 * @return a set of events of type Event
+	 */
+	public Set<Event> geAlphabet() {
 		Set<Event> alphabet = new HashSet<Event>();
-		for(Case c : log) {
+		for (Trace c : log) {
 			alphabet = Sets.union(alphabet, c.getAlphabet());
 		}
 		return alphabet;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((log == null) ? 0 : log.hashCode());
-		return result;
-	}
-
-	public int getTraceCardinality() {
-		return this.log.size();
-	}
-	
+	/**
+	 * Get the number of different (e1 =/= e2) events present in the log
+	 * 
+	 * @return an int, i.e. the number of events 
+	 */
 	public int getEventCardinality() {
 		Set<Event> events = new HashSet<Event>();
-		for(Case c : log) {
-			c.getTrace().forEach(e->{events.add(e);});
+		for (Trace t : log) {
+			events.addAll(t.getAlphabet());
 		}
 		return events.size();
 	}
 	
+	/**
+	 * Compute and return the frequency of a given loop set as defined in Definition 3
+	 * @param l loop set of which we want to know the frequency
+	 * @return number, i.e. frequency 
+	 */
+	public double getFrequencyLoop(LoopSet l) {
+		int sum_floopcase=0;
+		int n_cases = 0;
+		for(Trace t : log) {
+			double floopcase = t.getFrequencyLoop(l.getName().getName());
+			if(floopcase!=-1) {
+				sum_floopcase += floopcase;
+				n_cases++;
+			}
+		}
+		return ((sum_floopcase/n_cases) + (n_cases*100/ log.size()))/2;
+	}
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((eventMap == null) ? 0 : eventMap.hashCode());
+		result = prime * result + ((log == null) ? 0 : log.hashCode());
+		return result;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -103,6 +160,11 @@ public class EventLog {
 		if (getClass() != obj.getClass())
 			return false;
 		EventLog other = (EventLog) obj;
+		if (eventMap == null) {
+			if (other.eventMap != null)
+				return false;
+		} else if (!eventMap.equals(other.eventMap))
+			return false;
 		if (log == null) {
 			if (other.log != null)
 				return false;
@@ -110,5 +172,14 @@ public class EventLog {
 			return false;
 		return true;
 	}
+
+	@Override
+	public Iterator<Trace> iterator() {
+		return this.log.iterator();
+	}
+	
+	
+
+
 
 }

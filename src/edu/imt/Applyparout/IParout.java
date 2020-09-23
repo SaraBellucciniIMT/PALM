@@ -1,8 +1,8 @@
 package edu.imt.Applyparout;
 
-import edu.imt.specification.operators.Process;
+import edu.imt.specification.structure.BlockStructure;
 
 public interface IParout {
 
-	Process interpreter(Process p);
+	BlockStructure interpreter(BlockStructure p);
 }

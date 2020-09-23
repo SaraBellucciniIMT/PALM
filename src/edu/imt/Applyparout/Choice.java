@@ -1,74 +1,96 @@
 package edu.imt.Applyparout;
 
-import java.util.ArrayList;
-import java.util.List;
-import edu.imt.specification.operators.Activity;
-import edu.imt.specification.operators.Operator;
-import edu.imt.specification.operators.Process;
+import org.apache.commons.lang3.ArrayUtils;
+import edu.imt.inputData.*;
+import edu.imt.specification.structure.Operator;
+import edu.imt.specification.structure.BlockStructure;
+
+/**
+ * Applies the Tch function over the block structure b, if no block inside b
+ * have a parallel operator then no action is performed, otherwise the parallel
+ * operator is carried as first row operator adding synchronization among some
+ * new events. For more details, look at the function Tch in Fig 3 of the paper.
+ * 
+ * @see Choice#interpreter(BlockStructure)
+ * @author S. Belluccini
+ */
 
 public class Choice extends AbstractParout {
 
 	@Override
-	public Process interpreter(Process p) {
+	public BlockStructure interpreter(BlockStructure block) {
 
-		Process parallelProcess = null;
-		for (Process process : p.getProcess()) {
-			if (process.getOp() != null && process.getOp().equals(Operator.PARALLEL)) {
-				parallelProcess = process;
+		BlockStructure b = new BlockStructure(Operator.CHOICE);
+
+		for (int i = 0; i < block.size(); i++)
+			b.addBlockAtPosition(ApplyParout.Tp(block.getBlock(i)), i);
+
+		if (!AbstractParout.hasParallel(b))
+			return b;
+
+		// Index of the block with the parallel operator
+		int indexParBlock = -1;
+		for (int i = 0; i < b.size(); i++) {
+			if (b.getBlock(i).hasOp() && b.getBlock(i).getOp().equals(Operator.PARALLEL)) {
+				indexParBlock = i;
 				break;
 			}
 		}
-		List<Process> listofson = new ArrayList<Process>(parallelProcess.size());
 
-		Activity t0 = new Activity(gettemporary());
-		for (int i = 0; i < parallelProcess.size(); i++) {
-			Process tmp = new Process();
-			tmp.modifyProcessOp(Operator.SEQUENCE);
-			tmp.insertProcessAtPosition(new Process(t0), 0);
-			tmp.insertProcessAtPosition(parallelProcess.getProcess()[i], 1);
-			tmp.insertProcessAtPosition(new Process(t0), 2);
-			listofson.add(i, tmp);
-		}
+		// Construct the left side
+		BlockStructure leftSide = new BlockStructure(Operator.CHOICE);
 
-		updateCommAllHide(t0, parallelProcess.size());
-
-		for (int j = 0; j < p.size(); j++) {
-			if (!p.getProcess()[j].equals(parallelProcess)) {
-				Process tmp = new Process();
-				Activity t1 = new Activity(gettemporary());
-				tmp.modifyProcessOp(Operator.SEQUENCE);
-				tmp.insertProcessAtPosition(new Process(t1), 0);
-				tmp.insertProcessAtPosition(p.getProcess()[j], 1);
-				tmp.insertProcessAtPosition(new Process(t1), 2);
-				Process old = listofson.get(0);
-				if (old.getOp().equals(Operator.CHOICE))
-					listofson.get(0).insertProcessAtPosition(tmp, old.size());
-				else {
-					Process[] pr = { old, tmp };
-					Process choice = new Process(pr, Operator.CHOICE);
-					listofson.set(0, choice);
-				}
-				Process tt = new Process(tmp.getProcess(), tmp.getOp());
-				tt.removeElementAtPosition(1);
-				for (int k = 1; k < listofson.size(); k++) {
-					if (old.getOp().equals(Operator.CHOICE)) {
-						listofson.get(k).insertProcessAtPosition(tt, old.size());
-					} else {
-						Process[] pr = { listofson.get(k), tt };
-						Process choice = new Process(pr, Operator.CHOICE);
-						listofson.set(k, choice);
-					}
-				}
-				updateCommAllHide(t1, parallelProcess.size());
+		BlockStructure[] otherSide = new BlockStructure[b.size() - 1];
+		int j = 0;
+		for (int i = 0; i < b.size(); i++) {
+			if (i != indexParBlock) {
+				// ti.Pi.ti
+				Event t = AbstractParout.getTemporaryEvent();
+				BlockStructure[] tmpLeft = new BlockStructure[3];
+				tmpLeft[0] = new BlockStructure(t);
+				tmpLeft[1] = b.getBlock(i);
+				tmpLeft[2] = new BlockStructure(t);
+				leftSide.addBlockAtPosition(new BlockStructure(tmpLeft, Operator.SEQUENCE), j);
+				// ti.ti
+				BlockStructure[] tmpOther = new BlockStructure[2];
+				tmpOther[0] = new BlockStructure(t);
+				tmpOther[1] = new BlockStructure(t);
+				updateCommAllHide(t, b.getBlock(indexParBlock).size());
+				otherSide[j] = new BlockStructure(tmpOther, Operator.SEQUENCE);
+				j++;
 			}
-
 		}
 
-		Process[] sons = new Process[listofson.size()];
-		for (int i = 0; i < sons.length; i++)
-			sons[i] = listofson.get(i);
-		Process father = new Process(sons, Operator.PARALLEL);
-		return father;
+		// t.Q1.t
+		Event t = AbstractParout.getTemporaryEvent();
+		BlockStructure[] firstParBlock = new BlockStructure[3];
+		firstParBlock[0] = new BlockStructure(t);
+		firstParBlock[1] = b.getBlock(indexParBlock).getBlock(0);
+		firstParBlock[2] = new BlockStructure(t);
+		updateCommAllHide(t, b.getBlock(indexParBlock).size());
+		leftSide.addBlockAtPosition(new BlockStructure(firstParBlock, Operator.SEQUENCE), leftSide.size());
+
+		leftSide = new Choice().interpreter(leftSide);
+
+		// Put all togheter in a unique parallel block
+		BlockStructure parallelBlock = new BlockStructure(Operator.PARALLEL);
+
+		// Add the left side
+		parallelBlock.addBlockAtPosition(leftSide, 0);
+		// Construct and add the other sides
+		for (int i = 1; i < b.getBlock(indexParBlock).size(); i++) {
+			// t.Qi.t
+			BlockStructure[] tmp = new BlockStructure[3];
+			tmp[0] = new BlockStructure(t);
+			tmp[1] = b.getBlock(indexParBlock).getBlock(i);
+			tmp[2] = new BlockStructure(t);
+
+			BlockStructure tmpPar = new BlockStructure(tmp, Operator.SEQUENCE);
+			BlockStructure[] tmpChoice = ArrayUtils.add(otherSide, tmpPar);
+			parallelBlock.addBlockAtPosition(new BlockStructure(tmpChoice, Operator.CHOICE), i);
+		}
+		return parallelBlock;
+
 	}
 
 }

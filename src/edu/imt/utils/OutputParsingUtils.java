@@ -3,12 +3,11 @@ package edu.imt.utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,39 +18,23 @@ import java.util.regex.Pattern;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-
+import org.javatuples.Quartet;
 import edu.imt.Applyparout.ApplyParout;
 import edu.imt.inputData.Event;
 import edu.imt.inputData.EventLog;
-import edu.imt.specification.Mcrl2;
-import edu.imt.specification.operators.Activity;
-import edu.imt.specification.operators.Operator;
-import edu.imt.specification.operators.Process;
+import edu.imt.specification.MCRL2;
+import edu.imt.specification.structure.Operator;
+import edu.imt.specification.structure.BlockStructure;
 
 public class OutputParsingUtils {
 
-	private static Map<String, List<String>> loopProcesses;
-	// Index of the last loop process generated;
-	private static int indexLP = 1;
-	private static Mcrl2 spec;
-	protected static String t = "t";
-	private static String sgttofsm = "sgfsm";
-	private static String sgttomcrl2 = "sgmcrl";
-	private static int sindex = 0;
-
-	public static String getInfoLog(EventLog log) {
-		return "#Trace= " + log.getTraceCardinality() + " #Event= " + log.getEventCardinality();
-	}
+	private static final String MODEL = "model";
+	private static final String FORMULA = "f";
 
 	public static void cutLogEvents(File filelog, File cutlog, int percetage) {
 		EventLog log;
 		try {
-			log = InputParsingUtils.parseXes(filelog);
+			log = InputParsingUtils.parseXes(filelog, new HashMap<>());
 			int sizetodelete = (log.getEventCardinality() * percetage) / 100;
 			Set<Event> delete = new HashSet<Event>(sizetodelete);
 			int i = 0;
@@ -112,53 +95,34 @@ public class OutputParsingUtils {
 			writer.close();
 			output.close();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e = new FileNotFoundException();
 		}
 	}
 
-	// Generate a .fsm file from a coverability graph
-	public static String generateFSMfileFromCG(CoverabilityGraph cg, String f) {
-		Map<String, String> listofnode = new HashMap<String, String>();
-		List<String> nodelist = cg.getOrderedNode();
-		for (int i = 0; i < nodelist.size(); i++)
-			listofnode.put(nodelist.get(i), String.valueOf(++sindex));
-
-		File file = new File(f.replace(Terminal.dotsg, "") + sgttofsm + Terminal.dotfsm);
-		while (file.exists())
-			file = new File(f.replace(Terminal.dotsg, "") + sgttofsm + indexLP++ + Terminal.dotfsm);
-		try (BufferedWriter output = new BufferedWriter(new FileWriter(file))) {
-			output.write("--- \n");
-			for (String s : listofnode.values())
-				output.write(s + "\n");
-			output.write("--- \n");
-			for (Triple<String, String, String> triple : cg.getTriple()) {
-				output.write(listofnode.get(triple.getLeft()) + " " + listofnode.get(triple.getMiddle()) + " " + "\""
-						+ triple.getRight() + "\"\n");
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		sindex = 0;
-		return file.getAbsolutePath();
-	}
-
-	public static String generatemCRL2fromCG(CoverabilityGraph cg, File f) {
+	public static String generatemCRL2fromCG(CoverabilityGraph cg, File f, Map<String, String> map) {
 		List<String> listnode = cg.getOrderedNode();
-		Mcrl2 spec = new Mcrl2();
+		MCRL2 spec = new MCRL2();
 		for (String node : listnode) {
 			Set<Pair<String, String>> futureproc = cg.getPairWithInputNode(node);
 			String processspec = "";
 			int i = 0;
 			for (Pair<String, String> pair : futureproc) {
+				Event e;
+				if (pair.getRight().equals(MCRL2.TAU.getName())) {
+					e = MCRL2.TAU;
+				} else if (map.containsKey(pair.getRight())) {
+					e = new Event(pair.getRight(), map.get(pair.getRight()));
+					spec.addActSet(e);
+				} else {
+					e = new Event(pair.getRight());
+					spec.addActSet(e);
+				}
+
 				if (!cg.isFinalState(pair.getLeft()))
-					processspec = processspec + pair.getRight() + Operator.SEQUENCE.getOperator() + pair.getLeft();
+					processspec = processspec + e.getName() + Operator.SEQUENCE.getOperator() + pair.getLeft();
 				else
-					processspec = processspec + pair.getRight();
-				Activity a = new Activity(pair.getRight());
-				if (!a.equals(Mcrl2.silectAction))
-					spec.addActSet(new Activity(pair.getRight()));
+					processspec = processspec + e.getName();
+
 				if (i != futureproc.size() - 1)
 					processspec = processspec + Operator.CHOICE.getOperator();
 				i++;
@@ -166,25 +130,28 @@ public class OutputParsingUtils {
 			if (!processspec.isEmpty())
 				spec.addProcSpec(node, processspec);
 		}
-		spec.setStartingProcess(cg.getInitialMarking());
-		return generateMcrl2File(f.getAbsolutePath().replace(Terminal.dotsg, "") + sgttomcrl2, spec);
+		spec.addInitSet(cg.getInitialMarking());
+		return generateMcrl2File(spec);
 	}
 
-	/*
-	 * Change the way in which we give the name of the starting process in the
-	 * output of a file mcrl2
+	/**
+	 * Print out the mcrl2 object into a .mcrl2 file
+	 * 
+	 * @param fileName
+	 * @param spec
+	 * @return
 	 */
-	protected static String generateMcrl2File(String fileName, Mcrl2 spec) {
+	protected static String generateMcrl2File(MCRL2 spec) {
 		int index = 0;
-		File file = new File(fileName + Terminal.dotmcrl2);
-		while (file.exists()) {
-			file = new File(fileName + index + Terminal.dotmcrl2);
+		File file;
+		do {
+			file = new File(Terminal.path + MODEL + index + "." + FileExtension.MCRL2.getExtension());
 			index++;
-		}
+		} while (file.exists());
 		try (BufferedWriter output = new BufferedWriter(new FileWriter(file))) {
 			output.write("act\n");
 			int i = 0;
-			for (Activity act : spec.getActSet()) {
+			for (Event act : spec.getActSet()) {
 				if (i != (spec.getActSet().size() - 1))
 					output.write(act.getName() + ",");
 				else
@@ -193,23 +160,13 @@ public class OutputParsingUtils {
 			}
 			i = 0;
 			output.write(";\n" + "proc\n");
-			for (Entry<String, String> entry : spec.getProcspec().entrySet()) {
+			for (Entry<String, String> entry : spec.getProcspec().entrySet())
 				output.write(entry.getKey() + "=" + entry.getValue() + ";\n");
-			}
-			if (loopProcesses != null && !loopProcesses.isEmpty()) {
-				for (java.util.Map.Entry<String, List<String>> entry : loopProcesses.entrySet()) {
-					output.write(entry.getKey() + "=");
-					for (int j = 0; j < entry.getValue().size(); j++) {
-						output.write(entry.getValue().get(j));
-					}
-					output.write(";\n");
-				}
-			}
 			output.write("init ");
 			int par = 0;
 			if (spec.getHideAction() != null && !spec.getHideAction().isEmpty()) {
 				output.write("hide({");
-				for (Activity hide : spec.getHideAction()) {
+				for (Event hide : spec.getHideAction()) {
 					if (i != (spec.getHideAction().size() - 1))
 						output.write(hide.getName() + ",");
 					else
@@ -223,7 +180,7 @@ public class OutputParsingUtils {
 			i = 0;
 			if (spec.getAllowedAction() != null && !spec.getAllowedAction().isEmpty()) {
 				output.write("allow({");
-				for (Activity allow : spec.getAllowedAction()) {
+				for (Event allow : spec.getAllowedAction()) {
 					if (i != (spec.getAllowedAction().size() - 1))
 						output.write(allow.getName() + ",");
 					else
@@ -236,7 +193,7 @@ public class OutputParsingUtils {
 			i = 0;
 			if (spec.getCommFunction() != null && !spec.getCommFunction().isEmpty()) {
 				output.write("comm({");
-				for (Entry<Activity[], Activity> entry : spec.getCommFunction().entrySet()) {
+				for (Entry<Event[], Event> entry : spec.getCommFunction().entrySet()) {
 					for (int j = 0; j < entry.getKey().length; j++) {
 						output.write(entry.getKey()[j].getName());
 						if (j != entry.getKey().length - 1)
@@ -253,104 +210,79 @@ public class OutputParsingUtils {
 				par++;
 			}
 
-			output.write(spec.getStartingProcess());
+			int k = 0;
+			for (String s : spec.getInitSet()) {
+				output.write(s);
+				if (k != spec.getInitSet().size() - 1)
+					output.write(Operator.PARALLEL.getOperator());
+				k++;
+			}
 			for (int j = 0; j < par; j++) {
 				output.write(")");
 			}
 			output.write(";");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e = new IOException();
 		}
 
 		System.out.println(file.getName() + " GENERATED!");
 		return file.getAbsolutePath();
 	}
 
-	/*
-	 * Given a process generate a specification written in a file.mcrl2
+	/**
+	 * Transformation of the block structure into a mCRL2 specification. This method
+	 * use the Tp function to transform a block structure B into a block structure
+	 * that describes a mCRL2 specification that respect the pCRL format. Then the T
+	 * function , T: B -> (P x P(D)) to obtain the real specification
+	 * 
+	 * @param process
+	 * @return
 	 */
-	public static Mcrl2 generateMCRL2FromBlockStrcut(Process process) {
-		loopProcesses = new HashMap<String, List<String>>();
-		loopname = new HashMap<List<String>, String>();
-		spec = new Mcrl2();
-		Process pparout = ApplyParout.applyparout(process, spec);
+	public static MCRL2 generateMCRL2FromBlockStrcut(BlockStructure b, int threshold) {
+		MCRL2 spec = new MCRL2();
+		Quartet<BlockStructure, Map<Event[], Event>, Set<Event>, Set<Event>> pparout = ApplyParout.applyTp(b);
 
-		// ---- Generate process in a line
-		List<List<String>> toBeEmpty = new ArrayList<>();
-		List<String> result = new ArrayList<String>();
-		enterInTheProcess(pparout, result, toBeEmpty);
-		adjustCommFunc();
-		// ----
-		spec.addStartingProcess(Utils.getName());
-		String r = "";
-		for (int i = 0; i < result.size(); i++) {
-			r = r.concat(result.get(i));
-		}
-		spec.addProcSpec(spec.getStartingProcess(), r);
+		// Adds all the value of the communication function and its result as actions of
+		// the specification
+		pparout.getValue1().forEach((k, v) -> {
+			for (int i = 0; i < k.length; i++)
+				spec.addActSet(k[i]);
+			spec.addActSet(v);
+		});
+		spec.addCommFunction(pparout.getValue1());
+		spec.addAllowedAction(pparout.getValue2());
+		spec.addHideAction(pparout.getValue3());
+		spec.fromBlockStrucutureToMcrl2Processes(pparout.getValue0(), threshold);
+
 		return spec;
 	}
 
-	private static void adjustCommFunc() {
-		Map<Activity[], Activity> replace = new HashMap<Activity[], Activity>();
-		for (Entry<Activity[], Activity> fun : spec.getCommFunction().entrySet()) {
-			if (spec.getActSet().contains(fun.getKey()[0]))
-				replace.put(fun.getKey(), fun.getValue());
+	public static String generateMcfFile(String s) {
+		File file;
+		int index = 0;
+		do {
+			file = new File(Terminal.path + FORMULA + index + "." + FileExtension.MCF.getExtension());
+			index++;
+		} while (file.exists());
+		try (BufferedWriter output = new BufferedWriter(new FileWriter(file))) {
+			output.write(s);
+			output.flush();
+			output.close();
+		} catch (Exception e) {
+			e = new IOException();
 		}
-		spec.setCommFunction(replace);
+		return file.getName();
 	}
 
-	private static Map<List<String>, String> loopname;
-
-	private static void enterInTheProcess(Process p, List<String> linearProcessModel,
-			List<List<String>> parallelProcess) {
-		// System.out.println(p.toString());
-		if (p.getActivity() != null) {
-			linearProcessModel.add(p.getActivity().getName());
-			spec.addActSet(p.getActivity());
-			if (!spec.getAllowedAction().isEmpty() && !spec.isKeyCommFunction(p.getActivity()))
-				spec.addAllowedAction(p.getActivity());
-			return;
-		} else {
-			linearProcessModel.add("(");
-			for (int i = 0; i < p.size(); i++) {
-				if (p.getOp().equals(Operator.LOOP)) {
-					List<String> loop = new ArrayList<String>();
-					enterInTheProcess(p.getProcess()[i], loop, parallelProcess);
-					String index = "";
-					List<String> loopspec = new ArrayList<String>();
-					if (!loopname.containsKey(loop)) {
-						index = "S" + indexLP;
-						loopname.put(Lists.newArrayList(loop), index);
-						loopspec.addAll(loop);
-						loopspec.add(Operator.SEQUENCE.getOperator() + index + Operator.CHOICE.getOperator());
-						// loopspec.add("tau");
-						loopspec.addAll(loop);
-						loopProcesses.put(index, loopspec);
-
-					} else
-						index = loopname.get(loop);
-					linearProcessModel.add(index);
-					linearProcessModel.add(")");
-					indexLP++;
-					return;
-				}
-				if (p.getProcess() != null) {
-					enterInTheProcess(p.getProcess()[i], linearProcessModel, parallelProcess);
-				}
-
-				if (i != p.size() - 1) {
-					linearProcessModel.add(String.valueOf(p.getOp().getOperator()));
-					if (p.getOp().equals(Operator.PARALLEL))
-						linearProcessModel.add(String.valueOf(p.getOp().getOperator()));
-				}
-			}
-			linearProcessModel.add(")");
-		}
-	}
-
-	public static void mergeMCRL2(List<Mcrl2> mcrl2list, List<String> filemcrl2) {
-		Mcrl2 unicspec = new Mcrl2();
+	/**
+	 * Puts all the MCRL2 object all togheter and generate a unique mcrl2
+	 * specification.
+	 * 
+	 * @param mcrl2list list of mcrl2 object to unify
+	 * @return the name of the file generated
+	 */
+	public static String mergeMCRL2(List<MCRL2> mcrl2list) {
+		MCRL2 unicspec = new MCRL2();
 		mcrl2list.forEach(l -> {
 			unicspec.addActSet(l.getActSet());
 			if (l.getAllowedAction().isEmpty())
@@ -359,126 +291,31 @@ public class OutputParsingUtils {
 				unicspec.addAllowedAction(l.getAllowedAction());
 			unicspec.addHideAction(l.getHideAction());
 			unicspec.addCommFunction(l.getCommFunction());
-			unicspec.addStartingProcess(l.getStartingProcess());
-			unicspec.addMessage(l.getMessage());
+			unicspec.addInitSet(l.getInitSet());
+			unicspec.appendMessage(l.getMessage());
 			unicspec.addProcSpec(l.getProcspec());
 		});
-
-		unicspec.getMessage().asMap().forEach((k, v) -> {
-			Activity[] a = new Activity[v.size()];
-			unicspec.addCommFunction(v.toArray(a), k);
-			unicspec.addActSet(k);
-			unicspec.addAllowedAction(k);
-			unicspec.removedAllowedAction(a);
-		});
-
-		String name = "C:/Users/sara/eclipse-workspace/PALM-r/unionmcrl2" + Terminal.dotmcrl2;
-		generateMcrl2File(name, unicspec);
-
+		for (Entry<Event, Collection<Event>> m : unicspec.getMessage().asMap().entrySet()) {
+			Event[] a = new Event[m.getValue().size()];
+			unicspec.addCommFunction(m.getValue().toArray(a), m.getKey());
+			unicspec.addActSet(m.getKey());
+			unicspec.addAllowedAction(m.getKey());
+			for (Event e : a)
+				unicspec.removedAllowedAction(e);
+		}
+		return generateMcrl2File(unicspec);
 	}
-
-	/*
-	 * private static void mergeSetSpecifications(Mcrl2 spec1, Mcrl2 spec2, Mcrl2
-	 * unionSpec) {
-	 * 
-	 * unionSpec.setAllowedAction(spec1.getAllowedAction());
-	 * unionSpec.setAllowedAction(spec2.getAllowedAction());
-	 * 
-	 * unionSpec.setHideAction(spec1.getHideAction());
-	 * unionSpec.setHideAction(spec2.getHideAction());
-	 * 
-	 * unionSpec.setCommFunction(spec1.getCommFunction());
-	 * unionSpec.addCommFunction(spec2.getCommFunction());
-	 * 
-	 * unionSpec.setActSet(spec1.getActSet());
-	 * unionSpec.setActSet(spec2.getActSet());
-	 * 
-	 * /* Change the name of each process for each specification s.t all the
-	 * processes are added to the new one
-	 */
-	/*
-	 * int indexReplace = 0; indexReplace = changeNameProcessInSpecification(spec1,
-	 * indexReplace); changeNameProcessInSpecification(spec2, indexReplace);
-	 * 
-	 * Map<String, String> pp = new HashMap<String, String>();
-	 * pp.putAll(spec1.getProcspec()); pp.putAll(spec2.getProcspec());
-	 * unionSpec.setProcspec(pp); }
-	 */
-
-	/*
-	 * Return the lastIndex inserted in the name of the process
-	 */
-	/*
-	 * private static int changeNameProcessInSpecification(Mcrl2 oldSpec, int i) {
-	 * Map<String, String> processNewName = new HashMap<String, String>();
-	 * 
-	 * for (String k1 : oldSpec.getProcspec().keySet()) { if
-	 * (oldSpec.getStartingProcess().contains(k1))
-	 * oldSpec.setStartingProcess(oldSpec.getStartingProcess().replace(k1,
-	 * k1.concat(String.valueOf(i))));
-	 * 
-	 * processNewName.put(k1.concat(String.valueOf(i)),
-	 * oldSpec.getProcspec().get(k1)); i++; } oldSpec.setProcspec(processNewName);
-	 * return i; }
-	 */
-
-	/*
-	 * Generate the merge of two mclr2 specification taking into account that : if
-	 * two activity have the same name => this activity communicates NO NEED TO
-	 * EXECUTE A DISCOVERY ALGORITHM
-	 */
-	/*
-	 * public static boolean mergeSpecMCRL2SameActvityNameComm(File fileName1, File
-	 * fileName2, String outputFile) { Mcrl2 spec1 = new Mcrl2(fileName1); Mcrl2
-	 * spec2 = new Mcrl2(fileName2); Mcrl2 unionSpec = new Mcrl2();
-	 * mergeSetSpecifications(spec1, spec2, unionSpec);
-	 * 
-	 * // To see if there are elements that communicate Set<Activity>
-	 * intersectionAlphabet = (Set<Activity>) intersection(spec1.getActSet(),
-	 * spec2.getActSet());
-	 * 
-	 * if (!unionSpec.getAllowedAction().isEmpty()) intersectionAlphabet =
-	 * (Set<Activity>) intersection(intersectionAlphabet,
-	 * unionSpec.getAllowedAction()); if (!unionSpec.getHideAction().isEmpty())
-	 * intersectionAlphabet.removeAll(unionSpec.getHideAction()); /* If the set is
-	 * NOT EMPTY => rename all each element in the set in his traces with a
-	 * temporary name and add a communication function
-	 */
-	/*
-	 * int indexRenaming = 0; String r = "r";
-	 * 
-	 * for (Activity communication : intersectionAlphabet) { for (Entry<String,
-	 * String> entry : unionSpec.getProcspec().entrySet()) { if
-	 * (entry.getValue().contains(communication.getName())) {
-	 * unionSpec.getProcspec().put(entry.getKey(),
-	 * entry.getValue().replace(communication.getName(), r + indexRenaming)); } }
-	 * Activity[] activityComm = new Activity[2]; activityComm[0] = new Activity(r +
-	 * indexRenaming); activityComm[1] = new Activity(r + indexRenaming);
-	 * unionSpec.getCommFunction().put(activityComm, communication); if
-	 * (unionSpec.getAllowedAction().isEmpty()) { for (Activity act :
-	 * unionSpec.getActSet()) { unionSpec.addAllowedAction(act); } }
-	 * unionSpec.addActSet(new Activity(r + indexRenaming)); indexRenaming++; }
-	 * unionSpec.setStartingProcess(new String[] { spec1.getStartingProcess(),
-	 * spec2.getStartingProcess() });
-	 * 
-	 * String namemcrl2file = generateMcrl2File(outputFile, unionSpec); if
-	 * (namemcrl2file != null) return true; else return false;
-	 * 
-	 * }
-	 */
-
-	/*
-	 * private static <E> Collection<E> intersection(Collection<E> collection1,
-	 * Collection<E> collection2) { Collection<E> collection = new HashSet<E>(); for
-	 * (E e : collection1) { if (collection2.contains(e)) collection.add(e); }
-	 * return collection; }
-	 */
 
 	/*
 	 * Remove the event with <string key="lifecycle:transition" value="start"/> from
 	 * the input xeslog output : xeslog
 	 */
-	public static void generateCopyXesFileWithotStartTime(File f, File copy) {
+	/**
+	 * Generates the copy of this xes file while removing the event with string key="lifecycle:transition" value="start"
+	 * @param f the xes file 
+	 * @param copy the copy without start evetns
+	 */
+	public static void generateCopyXesFileWithoutStartTime(File f, File copy) {
 		try {
 			BufferedReader output = new BufferedReader(new FileReader(f));
 			BufferedWriter writer = new BufferedWriter(new FileWriter(copy));
@@ -507,14 +344,20 @@ public class OutputParsingUtils {
 			writer.close();
 			output.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e = new FileNotFoundException();
 		}
 
 	}
 
+	/**
+	 * To generate a xes copy adding message among some of its events
+	 * 
+	 * @param f   the xes file
+	 * @param map key=event value = message
+	 */
 	public static void generateCopyXesMessageAttribute(File f, Map<String, String> map) {
-		String copyname = f.getPath().replace(Terminal.dotxes, "+m" + Terminal.dotxes);
+		String copyname = f.getPath().replace(FileExtension.XES.getExtension(),
+				"+m" + FileExtension.XES.getExtension());
 		File copy = new File(copyname);
 		try {
 			BufferedReader output = new BufferedReader(new FileReader(f));
@@ -536,8 +379,7 @@ public class OutputParsingUtils {
 			writer.close();
 			output.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e =  new FileNotFoundException();
 		}
 	}
 
@@ -548,60 +390,4 @@ public class OutputParsingUtils {
 		}
 		return null;
 	}
-
-	public static void cutHaldXes(File f, File copy, int size) {
-		try {
-			BufferedReader output = new BufferedReader(new FileReader(f));
-			BufferedWriter writer = new BufferedWriter(new FileWriter(copy));
-			String st;
-			long sizehalf = size / 2;
-			long half = 0;
-			boolean startclosing = false;
-			while ((st = output.readLine()) != null) {
-				if (half > sizehalf) {
-					startclosing = true;
-				}
-				writer.write(st + "\n");
-				if (startclosing && st.contains("</trace>")) {
-					writer.write(st + "\n");
-					break;
-				}
-				half++;
-			}
-			writer.write("</log>");
-			writer.flush();
-			writer.close();
-			output.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public static void generateCSVFile(File f, List<List<String>> rows, boolean starttime) {
-		try {
-			FileWriter csvWriter = new FileWriter(f);
-			csvWriter.append("Case");
-			csvWriter.append(",");
-			csvWriter.append("Activity");
-			csvWriter.append(",");
-			if (starttime) {
-				csvWriter.append("Start timestamp");
-				csvWriter.append(",");
-			}
-			csvWriter.append("End timestamp");
-			csvWriter.append("\n");
-
-			for (List<String> rowData : rows) {
-				csvWriter.append(String.join(",", rowData));
-				csvWriter.append("\n");
-			}
-			csvWriter.flush();
-			csvWriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 }

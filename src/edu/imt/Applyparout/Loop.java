@@ -1,145 +1,153 @@
 package edu.imt.Applyparout;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
-import edu.imt.specification.operators.Activity;
-import edu.imt.specification.operators.Operator;
-import edu.imt.specification.operators.Process;
-import edu.imt.utils.InputParsingUtils;
-import edu.imt.utils.InterleavingPath;
+import org.javatuples.Pair;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import edu.imt.specification.structure.BlockStructure;
+import edu.imt.specification.structure.Operator;
+
+/**
+ * This class applies the T(K) = K function and Td over the block structure b.
+ * If by applying Td a parallel operator is found then the parallel needs to be
+ * removed by resolving it's interleaving (e||e' it's bisimilar to e.e'+ e'.e)
+ * For more details look at Fig 3 and pag 9 of the paper
+ * 
+ * @see #Td(BlockStructure)
+ * @author S. Belluccini
+ *
+ */
 public class Loop extends AbstractParout {
 
 	@Override
-	public Process interpreter(Process p) {
-		//System.out.println(p.toString());
-		Process parallelProcess = null;
-		for (Process process : p.getProcess()) {
-			if (process.getOp() != null && process.getOp().equals(Operator.PARALLEL)) {
-				parallelProcess = process;
-				break;
-			}
-		}
-		List<Activity> allinterleaving = new ArrayList<Activity>(findAllInterleaving(parallelProcess));
-		Process[] tmpfather = new Process[allinterleaving.size()];
-		for (int i = 0; i < allinterleaving.size(); i++) {
-			List<String> a = allinterleaving.get(i).getActivity();
-			Process[] tmpson = new Process[a.size()];
-			for (int j = 0; j < a.size(); j++) {
-				if (loopref.containsKey(a.get(j))) {
-					Process ref = loopref.get(a.get(j));
-					if (ref.getActivity() != null) {
-						tmpson[j] = new Process(ref.getActivity());
-						tmpson[j].modifyProcessOp(ref.getOp());
-					} else {
-						tmpson[j] = new Process(ref.getProcess(), ref.getOp());
-					}
-				} else
-					tmpson[j] = new Process(new Activity(a.get(j)));
-			}
-			tmpfather[i] = new Process(tmpson, Operator.SEQUENCE);
-		}
-		Process father = new Process(tmpfather, Operator.CHOICE);
-		if (ApplyParout.insideloop) {
-			Process news = new Process();
-			news.modifyProcessOp(p.getOp());
-			for (int i = 0; i < p.size(); i++) {
-				if (p.getProcess()[i] != parallelProcess)
-					news.insertProcessAtPosition(p.getProcess()[i], i);
-				else
-					news.insertProcessAtPosition(father, i);
-			}
-			father = news;
-		}
-
-		return father;
+	public BlockStructure interpreter(BlockStructure block) {
+		return Td(block);
 	}
 
-	public Set<Activity> findAllInterleaving(Process p) {
-		List<Activity> l1 = InputParsingUtils.createSingleTrace(
-				new Activity(InputParsingUtils.tranformStringInAnActivity(tranformInASingleString(p.getProcess()[0]))));
-		List<Activity> l2 = InputParsingUtils.createSingleTrace(
-				new Activity(InputParsingUtils.tranformStringInAnActivity(tranformInASingleString(p.getProcess()[1]))));
-
-		Set<Activity> partialresult = twoList(l1, l2);
-		Set<Activity> finalResult = new HashSet<Activity>();
-		for (int i = 2; i < p.size(); i++) {
-			List<Activity> l3 = InputParsingUtils.createSingleTrace(new Activity(
-					InputParsingUtils.tranformStringInAnActivity(tranformInASingleString(p.getProcess()[i]))));
-			finalResult.addAll(twoList(new ArrayList<Activity>(partialresult), l3));
-			if (i != p.size() - 1) {
-				partialresult = new HashSet<Activity>(finalResult);
-			}
-		}
-		if (finalResult.isEmpty() && !partialresult.isEmpty())
-			finalResult.addAll(partialresult);
-		finalResult = removeTemp(finalResult);
-		return finalResult;
-
-	}
-
-	private Set<Activity> twoList(List<Activity> l1, List<Activity> l2) {
-		Set<Activity> total = new HashSet<>();
-		for (int i = 0; i < l1.size(); i++) {
-			int j = 0;
-			while (j < l2.size()) {
-				Set<Activity> tmp = new HashSet<>();
-				tmp.addAll(InterleavingPath.combinaTwoString(l1.get(i), l2.get(j)));
-				total.addAll(tmp);
-				j++;
-			}
-		}
-		return total;
-	}
-
-	private Map<String, Process> loopref = new HashMap<String, Process>();
-	private static String ref = "S";
-
-	/*
-	 * Create a String that represent the process Whi do that? in order to give it
-	 * in input to the method InputParsingUtils.createSingleTrace method
+	/**
+	 * The Td function applies Td over every block inside inside b and if b has the
+	 * parallel operator than this block is transformed in a choice among the
+	 * sequence of events inside the block. For more details look at pag 9 of the
+	 * paper
+	 * 
+	 * @see #seq(BlockStructure)
+	 * 
+	 * @param b the block structure
+	 * @return the block structure resulting from Td
 	 */
-	private String tranformInASingleString(Process p) {
-		if (p.getOp() != null && p.getOp().equals(Operator.LOOP)) {
-			String generateref = ref + gettemporary();
-			loopref.put(generateref, p);
-			return generateref;
+	private BlockStructure Td(BlockStructure b) {
+		if (b.hasEvent()) {
+			return b;
+		} else if (b.getOp() == Operator.SEQUENCE || b.getOp() == Operator.CHOICE || b.getOp() == Operator.LOOP) {
+			b = onEveryBlock(b);
+		} else if (b.getOp() == Operator.PARALLEL) {
+			Set<List<BlockStructure>> blockList = seq(onEveryBlock(b));
+			BlockStructure[] arrC = new BlockStructure[blockList.size()];
+			int j = 0;
+			for (List<BlockStructure> l : blockList) {
+				BlockStructure[] arrS = new BlockStructure[l.size()];
+				for (int i = 0; i < arrS.length; i++)
+					arrS[i] = l.get(i);
+				BlockStructure sequence = new BlockStructure(arrS, Operator.SEQUENCE);
+				arrC[j++] = sequence;
+			}
+			b = new BlockStructure(arrC, Operator.CHOICE);
 		}
-		if (p.getActivity() != null)
-			return p.getActivity().getName();
-		String s = "";
-		for (int i = 0; i < p.size(); i++) {
-			s = s.concat(tranformInASingleString(p.getProcess()[i]));
-			if (i != (p.size() - 1))
-				s = s.concat(p.getOp().getStringOp());
-		}
-		return s;
+
+		return b;
 	}
-	
-	static private Pattern temp = Pattern.compile("t\\d+");
-	private Set<Activity> removeTemp(Set<Activity> result) {
-		Set<Activity> setactivity = new HashSet<Activity>();
-		for (Activity a : result) {
-			int indexstart = 0;
-			List<String> newa = new ArrayList<String>();
-			for (int i = 0; i < a.size(); i++) {
-				if (temp.matcher(String.valueOf(a.getActivity().get(i))).matches()) {
-					newa.addAll(a.getActivity().subList(indexstart, i));
-					indexstart = i + 1;
+
+	/**
+	 * Function that applies Td on every block inside this block
+	 * 
+	 * @param b the block structure
+	 * @return the result of the application of Td over the blocks inside b
+	 */
+	private BlockStructure onEveryBlock(BlockStructure b) {
+		BlockStructure newB = new BlockStructure(b.getOp());
+		if(b.getFrequency()!= 0) {
+			newB.setFrequency(b.getFrequency());
+			newB.setRepetition(b.getRepetition());
+		}
+		for (int i = 0; i < b.size(); i++)
+			newB.addBlockAtPosition(Td(b.getBlock(i)), i);
+		return newB;
+	}
+
+	/**
+	 * Method to find all the possible interleaving among the blocks of a block;
+	 * It's inspired to the CCS's expansion law.
+	 * @see #f(BlockStructure)
+	 * @param b
+	 * @return
+	 */
+	private Set<List<BlockStructure>> seq(BlockStructure b) {
+		Set<List<BlockStructure>> blockList = new HashSet<List<BlockStructure>>();
+		for (int i = 0; i < b.size(); i++) {
+			BlockStructure remainingBlock;
+			Set<Pair<BlockStructure, BlockStructure>> pair = f(b.getBlock(i));
+			for (Pair<BlockStructure, BlockStructure> p : pair) {
+				remainingBlock = b.removeBlockAtIndex(i);
+				if (!p.getValue1().isEmpty())
+					remainingBlock.addBlockAtPosition(p.getValue1(), i);
+
+				if (remainingBlock.hasBlock()) {
+					Set<List<BlockStructure>> partialResult = seq(remainingBlock);
+					partialResult.forEach(pR -> {
+						pR.add(0, p.getValue0());
+					});
+					blockList.addAll(partialResult);
+				} else {
+					List<BlockStructure> singleList = Lists.newArrayList(p.getValue0());
+					if (remainingBlock.hasEvent())
+						singleList.add(new BlockStructure(remainingBlock.getEvent()));
+					blockList.add(singleList);
 				}
 			}
-			if (indexstart != a.size())
-				newa.addAll(a.getActivity().subList(indexstart, a.size()));
-			Activity activity = new Activity(newa);
-			if (!setactivity.contains(activity))
-				setactivity.add(activity);
 		}
-		return setactivity;
+		return blockList;
 	}
+
+	/**
+	 * This method detect the first action that is executed inside the block and
+	 * returns the remaining block after that action its executed; in case of choice
+	 * this action is taken for all the blocks inside the choice block
+	 * 
+	 * @param block
+	 * @return
+	 */
+
+	private Set<Pair<BlockStructure, BlockStructure>> f(BlockStructure block) {
+		Set<Pair<BlockStructure, BlockStructure>> set = Sets.newHashSet();
+		if (block.hasEvent() || block.getOp() == Operator.LOOP) {
+			set.add(new Pair<BlockStructure, BlockStructure>(block, new BlockStructure()));
+		} else if (block.getOp() == Operator.CHOICE) {
+			for (BlockStructure b : block.getBlock())
+				set.addAll(f(b));
+		} else {
+			set = f(block.getBlock(0));
+			BlockStructure remainingBlock = block.removeBlockAtIndex(0);
+
+			if (!remainingBlock.isEmpty()) {
+				Set<Pair<BlockStructure, BlockStructure>> tmpSet = Sets.newHashSet();
+				for (Pair<BlockStructure, BlockStructure> p : set) {
+					if (!p.getValue1().isEmpty()) {
+						BlockStructure tmp = p.getValue1();
+						tmp.addBlockAtPosition(remainingBlock, tmp.size());
+						tmpSet.add(new Pair<BlockStructure, BlockStructure>(p.getValue0(), tmp));
+					} else
+						tmpSet.add(new Pair<BlockStructure, BlockStructure>(p.getValue0(), remainingBlock));
+				}
+				set = tmpSet;
+			}
+		}
+		return set;
+
+	}
+
 }

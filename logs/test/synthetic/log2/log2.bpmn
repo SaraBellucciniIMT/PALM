@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<definitions xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="definitions_c4a50087-7dee-4f6d-b355-a6a77fd72797" targetNamespace="http://plg.processmining.it/" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <process id="log2">
+    <startEvent id="element0" name="Start">
+      <outgoing>element0-element2</outgoing>
+    </startEvent>
+    <endEvent id="element1" name="End">
+      <incoming>element5-element1</incoming>
+    </endEvent>
+    <task id="element2" name="Activity A">
+      <incoming>element0-element2</incoming>
+      <outgoing>element2-element3</outgoing>
+    </task>
+    <exclusiveGateway id="element3">
+      <incoming>element2-element3</incoming>
+      <outgoing>element3-element6</outgoing>
+      <outgoing>element3-element24</outgoing>
+    </exclusiveGateway>
+    <exclusiveGateway id="element4">
+      <incoming>element9-element4</incoming>
+      <incoming>element24-element4</incoming>
+      <outgoing>element4-element5</outgoing>
+    </exclusiveGateway>
+    <task id="element5" name="Activity B">
+      <incoming>element4-element5</incoming>
+      <outgoing>element5-element1</outgoing>
+    </task>
+    <task id="element6" name="Activity C">
+      <incoming>element3-element6</incoming>
+      <outgoing>element6-element7</outgoing>
+    </task>
+    <parallelGateway id="element7">
+      <incoming>element6-element7</incoming>
+      <outgoing>element7-element10</outgoing>
+      <outgoing>element7-element17</outgoing>
+    </parallelGateway>
+    <parallelGateway id="element8">
+      <incoming>element12-element8</incoming>
+      <incoming>element17-element8</incoming>
+      <outgoing>element8-element9</outgoing>
+    </parallelGateway>
+    <task id="element9" name="Activity D">
+      <incoming>element8-element9</incoming>
+      <outgoing>element9-element4</outgoing>
+    </task>
+    <task id="element10" name="Activity E">
+      <incoming>element7-element10</incoming>
+      <outgoing>element10-element11</outgoing>
+    </task>
+    <task id="element11" name="Activity F">
+      <incoming>element10-element11</incoming>
+      <outgoing>element11-element12</outgoing>
+    </task>
+    <task id="element12" name="Activity G">
+      <incoming>element11-element12</incoming>
+      <outgoing>element12-element8</outgoing>
+    </task>
+    <task id="element17" name="Activity H">
+      <incoming>element7-element17</incoming>
+      <outgoing>element17-element8</outgoing>
+    </task>
+    <task id="element24" name="Activity I">
+      <incoming>element3-element24</incoming>
+      <outgoing>element24-element4</outgoing>
+    </task>
+    <sequenceFlow id="element11-element12" isImmediate="true" sourceRef="element11" targetRef="element12"/>
+    <sequenceFlow id="element10-element11" isImmediate="true" sourceRef="element10" targetRef="element11"/>
+    <sequenceFlow id="element7-element10" isImmediate="true" sourceRef="element7" targetRef="element10"/>
+    <sequenceFlow id="element12-element8" isImmediate="true" sourceRef="element12" targetRef="element8"/>
+    <sequenceFlow id="element7-element17" isImmediate="true" sourceRef="element7" targetRef="element17"/>
+    <sequenceFlow id="element17-element8" isImmediate="true" sourceRef="element17" targetRef="element8"/>
+    <sequenceFlow id="element6-element7" isImmediate="true" sourceRef="element6" targetRef="element7"/>
+    <sequenceFlow id="element8-element9" isImmediate="true" sourceRef="element8" targetRef="element9"/>
+    <sequenceFlow id="element3-element6" isImmediate="true" sourceRef="element3" targetRef="element6"/>
+    <sequenceFlow id="element9-element4" isImmediate="true" sourceRef="element9" targetRef="element4"/>
+    <sequenceFlow id="element3-element24" isImmediate="true" sourceRef="element3" targetRef="element24"/>
+    <sequenceFlow id="element24-element4" isImmediate="true" sourceRef="element24" targetRef="element4"/>
+    <sequenceFlow id="element2-element3" isImmediate="true" sourceRef="element2" targetRef="element3"/>
+    <sequenceFlow id="element4-element5" isImmediate="true" sourceRef="element4" targetRef="element5"/>
+    <sequenceFlow id="element0-element2" isImmediate="true" sourceRef="element0" targetRef="element2"/>
+    <sequenceFlow id="element5-element1" isImmediate="true" sourceRef="element5" targetRef="element1"/>
+  </process>
+  <bpmndi:BPMNDiagram documentation="bpmn diagram element" id="diagram" name="diagram" resolution="120.0">
+    <bpmndi:BPMNPlane bpmnElement="log2" id="plane">
+      <bpmndi:BPMNShape bpmnElement="element0" id="shape0">
+        <dc:Bounds height="20.0" width="20.0" x="4.0" y="40.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element1" id="shape1">
+        <dc:Bounds height="20.0" width="20.0" x="1241.0" y="42.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element2" id="shape2">
+        <dc:Bounds height="30.0" width="70.0" x="79.0" y="45.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element3" id="shape3">
+        <dc:Bounds height="30.0" width="30.0" x="199.0" y="45.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element4" id="shape4">
+        <dc:Bounds height="30.0" width="30.0" x="1039.0" y="49.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element5" id="shape5">
+        <dc:Bounds height="30.0" width="70.0" x="1119.0" y="47.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element6" id="shape6">
+        <dc:Bounds height="30.0" width="70.0" x="279.0" y="15.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element7" id="shape7">
+        <dc:Bounds height="30.0" width="30.0" x="399.0" y="25.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element8" id="shape8">
+        <dc:Bounds height="30.0" width="30.0" x="839.0" y="30.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element9" id="shape9">
+        <dc:Bounds height="30.0" width="70.0" x="919.0" y="30.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element10" id="shape10">
+        <dc:Bounds height="30.0" width="70.0" x="479.0" y="0.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element11" id="shape11">
+        <dc:Bounds height="30.0" width="70.0" x="599.0" y="7.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element12" id="shape12">
+        <dc:Bounds height="30.0" width="70.0" x="719.0" y="15.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element17" id="shape17">
+        <dc:Bounds height="30.0" width="70.0" x="479.0" y="60.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="element24" id="shape24">
+        <dc:Bounds height="30.0" width="70.0" x="279.0" y="75.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="element11-element12" id="flowEdgeelement11-element12">
+        <di:waypoint x="669.0" y="22.0"/>
+        <di:waypoint x="681.0" y="22.0"/>
+        <di:waypoint x="707.0" y="30.0"/>
+        <di:waypoint x="719.0" y="30.0"/>
+        <di:waypoint x="669.0" y="22.0"/>
+        <di:waypoint x="681.0" y="22.0"/>
+        <di:waypoint x="707.0" y="30.0"/>
+        <di:waypoint x="719.0" y="30.0"/>
+        <di:waypoint x="669.0" y="22.0"/>
+        <di:waypoint x="681.0" y="22.0"/>
+        <di:waypoint x="707.0" y="30.0"/>
+        <di:waypoint x="719.0" y="30.0"/>
+        <di:waypoint x="669.0" y="22.0"/>
+        <di:waypoint x="681.0" y="22.0"/>
+        <di:waypoint x="707.0" y="30.0"/>
+        <di:waypoint x="719.0" y="30.0"/>
+        <di:waypoint x="669.0" y="22.0"/>
+        <di:waypoint x="681.0" y="22.0"/>
+        <di:waypoint x="707.0" y="30.0"/>
+        <di:waypoint x="719.0" y="30.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element10-element11" id="flowEdgeelement10-element11">
+        <di:waypoint x="549.0" y="15.0"/>
+        <di:waypoint x="561.0" y="15.0"/>
+        <di:waypoint x="587.0" y="22.0"/>
+        <di:waypoint x="599.0" y="22.0"/>
+        <di:waypoint x="549.0" y="15.0"/>
+        <di:waypoint x="561.0" y="15.0"/>
+        <di:waypoint x="587.0" y="22.0"/>
+        <di:waypoint x="599.0" y="22.0"/>
+        <di:waypoint x="549.0" y="15.0"/>
+        <di:waypoint x="561.0" y="15.0"/>
+        <di:waypoint x="587.0" y="22.0"/>
+        <di:waypoint x="599.0" y="22.0"/>
+        <di:waypoint x="549.0" y="15.0"/>
+        <di:waypoint x="561.0" y="15.0"/>
+        <di:waypoint x="587.0" y="22.0"/>
+        <di:waypoint x="599.0" y="22.0"/>
+        <di:waypoint x="549.0" y="15.0"/>
+        <di:waypoint x="561.0" y="15.0"/>
+        <di:waypoint x="587.0" y="22.0"/>
+        <di:waypoint x="599.0" y="22.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element7-element10" id="flowEdgeelement7-element10">
+        <di:waypoint x="429.0" y="35.0"/>
+        <di:waypoint x="441.0" y="35.0"/>
+        <di:waypoint x="467.0" y="15.0"/>
+        <di:waypoint x="479.0" y="15.0"/>
+        <di:waypoint x="429.0" y="35.0"/>
+        <di:waypoint x="441.0" y="35.0"/>
+        <di:waypoint x="467.0" y="15.0"/>
+        <di:waypoint x="479.0" y="15.0"/>
+        <di:waypoint x="429.0" y="35.0"/>
+        <di:waypoint x="441.0" y="35.0"/>
+        <di:waypoint x="467.0" y="15.0"/>
+        <di:waypoint x="479.0" y="15.0"/>
+        <di:waypoint x="429.0" y="35.0"/>
+        <di:waypoint x="441.0" y="35.0"/>
+        <di:waypoint x="467.0" y="15.0"/>
+        <di:waypoint x="479.0" y="15.0"/>
+        <di:waypoint x="429.0" y="35.0"/>
+        <di:waypoint x="441.0" y="35.0"/>
+        <di:waypoint x="467.0" y="15.0"/>
+        <di:waypoint x="479.0" y="15.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element12-element8" id="flowEdgeelement12-element8">
+        <di:waypoint x="789.0" y="30.0"/>
+        <di:waypoint x="801.0" y="30.0"/>
+        <di:waypoint x="827.0" y="40.0"/>
+        <di:waypoint x="839.0" y="40.0"/>
+        <di:waypoint x="789.0" y="30.0"/>
+        <di:waypoint x="801.0" y="30.0"/>
+        <di:waypoint x="827.0" y="40.0"/>
+        <di:waypoint x="839.0" y="40.0"/>
+        <di:waypoint x="789.0" y="30.0"/>
+        <di:waypoint x="801.0" y="30.0"/>
+        <di:waypoint x="827.0" y="40.0"/>
+        <di:waypoint x="839.0" y="40.0"/>
+        <di:waypoint x="789.0" y="30.0"/>
+        <di:waypoint x="801.0" y="30.0"/>
+        <di:waypoint x="827.0" y="40.0"/>
+        <di:waypoint x="839.0" y="40.0"/>
+        <di:waypoint x="789.0" y="30.0"/>
+        <di:waypoint x="801.0" y="30.0"/>
+        <di:waypoint x="827.0" y="40.0"/>
+        <di:waypoint x="839.0" y="40.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element7-element17" id="flowEdgeelement7-element17">
+        <di:waypoint x="429.0" y="45.0"/>
+        <di:waypoint x="441.0" y="45.0"/>
+        <di:waypoint x="467.0" y="75.0"/>
+        <di:waypoint x="479.0" y="75.0"/>
+        <di:waypoint x="429.0" y="45.0"/>
+        <di:waypoint x="441.0" y="45.0"/>
+        <di:waypoint x="467.0" y="75.0"/>
+        <di:waypoint x="479.0" y="75.0"/>
+        <di:waypoint x="429.0" y="45.0"/>
+        <di:waypoint x="441.0" y="45.0"/>
+        <di:waypoint x="467.0" y="75.0"/>
+        <di:waypoint x="479.0" y="75.0"/>
+        <di:waypoint x="429.0" y="45.0"/>
+        <di:waypoint x="441.0" y="45.0"/>
+        <di:waypoint x="467.0" y="75.0"/>
+        <di:waypoint x="479.0" y="75.0"/>
+        <di:waypoint x="429.0" y="45.0"/>
+        <di:waypoint x="441.0" y="45.0"/>
+        <di:waypoint x="467.0" y="75.0"/>
+        <di:waypoint x="479.0" y="75.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element17-element8" id="flowEdgeelement17-element8">
+        <di:waypoint x="549.0" y="75.0"/>
+        <di:waypoint x="561.0" y="75.0"/>
+        <di:waypoint x="574.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="814.0" y="75.0"/>
+        <di:waypoint x="827.0" y="50.0"/>
+        <di:waypoint x="839.0" y="50.0"/>
+        <di:waypoint x="549.0" y="75.0"/>
+        <di:waypoint x="561.0" y="75.0"/>
+        <di:waypoint x="574.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="814.0" y="75.0"/>
+        <di:waypoint x="827.0" y="50.0"/>
+        <di:waypoint x="839.0" y="50.0"/>
+        <di:waypoint x="549.0" y="75.0"/>
+        <di:waypoint x="561.0" y="75.0"/>
+        <di:waypoint x="574.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="814.0" y="75.0"/>
+        <di:waypoint x="827.0" y="50.0"/>
+        <di:waypoint x="839.0" y="50.0"/>
+        <di:waypoint x="549.0" y="75.0"/>
+        <di:waypoint x="561.0" y="75.0"/>
+        <di:waypoint x="574.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="814.0" y="75.0"/>
+        <di:waypoint x="827.0" y="50.0"/>
+        <di:waypoint x="839.0" y="50.0"/>
+        <di:waypoint x="549.0" y="75.0"/>
+        <di:waypoint x="561.0" y="75.0"/>
+        <di:waypoint x="574.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="694.0" y="75.0"/>
+        <di:waypoint x="814.0" y="75.0"/>
+        <di:waypoint x="827.0" y="50.0"/>
+        <di:waypoint x="839.0" y="50.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element6-element7" id="flowEdgeelement6-element7">
+        <di:waypoint x="349.0" y="30.0"/>
+        <di:waypoint x="361.0" y="30.0"/>
+        <di:waypoint x="387.0" y="40.0"/>
+        <di:waypoint x="399.0" y="40.0"/>
+        <di:waypoint x="349.0" y="30.0"/>
+        <di:waypoint x="361.0" y="30.0"/>
+        <di:waypoint x="387.0" y="40.0"/>
+        <di:waypoint x="399.0" y="40.0"/>
+        <di:waypoint x="349.0" y="30.0"/>
+        <di:waypoint x="361.0" y="30.0"/>
+        <di:waypoint x="387.0" y="40.0"/>
+        <di:waypoint x="399.0" y="40.0"/>
+        <di:waypoint x="349.0" y="30.0"/>
+        <di:waypoint x="361.0" y="30.0"/>
+        <di:waypoint x="387.0" y="40.0"/>
+        <di:waypoint x="399.0" y="40.0"/>
+        <di:waypoint x="349.0" y="30.0"/>
+        <di:waypoint x="361.0" y="30.0"/>
+        <di:waypoint x="387.0" y="40.0"/>
+        <di:waypoint x="399.0" y="40.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element8-element9" id="flowEdgeelement8-element9">
+        <di:waypoint x="869.0" y="45.0"/>
+        <di:waypoint x="881.0" y="45.0"/>
+        <di:waypoint x="907.0" y="45.0"/>
+        <di:waypoint x="919.0" y="45.0"/>
+        <di:waypoint x="869.0" y="45.0"/>
+        <di:waypoint x="881.0" y="45.0"/>
+        <di:waypoint x="907.0" y="45.0"/>
+        <di:waypoint x="919.0" y="45.0"/>
+        <di:waypoint x="869.0" y="45.0"/>
+        <di:waypoint x="881.0" y="45.0"/>
+        <di:waypoint x="907.0" y="45.0"/>
+        <di:waypoint x="919.0" y="45.0"/>
+        <di:waypoint x="869.0" y="45.0"/>
+        <di:waypoint x="881.0" y="45.0"/>
+        <di:waypoint x="907.0" y="45.0"/>
+        <di:waypoint x="919.0" y="45.0"/>
+        <di:waypoint x="869.0" y="45.0"/>
+        <di:waypoint x="881.0" y="45.0"/>
+        <di:waypoint x="907.0" y="45.0"/>
+        <di:waypoint x="919.0" y="45.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element3-element6" id="flowEdgeelement3-element6">
+        <di:waypoint x="229.0" y="55.0"/>
+        <di:waypoint x="241.0" y="55.0"/>
+        <di:waypoint x="267.0" y="30.0"/>
+        <di:waypoint x="279.0" y="30.0"/>
+        <di:waypoint x="229.0" y="55.0"/>
+        <di:waypoint x="241.0" y="55.0"/>
+        <di:waypoint x="267.0" y="30.0"/>
+        <di:waypoint x="279.0" y="30.0"/>
+        <di:waypoint x="229.0" y="55.0"/>
+        <di:waypoint x="241.0" y="55.0"/>
+        <di:waypoint x="267.0" y="30.0"/>
+        <di:waypoint x="279.0" y="30.0"/>
+        <di:waypoint x="229.0" y="55.0"/>
+        <di:waypoint x="241.0" y="55.0"/>
+        <di:waypoint x="267.0" y="30.0"/>
+        <di:waypoint x="279.0" y="30.0"/>
+        <di:waypoint x="229.0" y="55.0"/>
+        <di:waypoint x="241.0" y="55.0"/>
+        <di:waypoint x="267.0" y="30.0"/>
+        <di:waypoint x="279.0" y="30.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element9-element4" id="flowEdgeelement9-element4">
+        <di:waypoint x="989.0" y="45.0"/>
+        <di:waypoint x="1001.0" y="45.0"/>
+        <di:waypoint x="1027.0" y="59.0"/>
+        <di:waypoint x="1039.0" y="59.0"/>
+        <di:waypoint x="989.0" y="45.0"/>
+        <di:waypoint x="1001.0" y="45.0"/>
+        <di:waypoint x="1027.0" y="59.0"/>
+        <di:waypoint x="1039.0" y="59.0"/>
+        <di:waypoint x="989.0" y="45.0"/>
+        <di:waypoint x="1001.0" y="45.0"/>
+        <di:waypoint x="1027.0" y="59.0"/>
+        <di:waypoint x="1039.0" y="59.0"/>
+        <di:waypoint x="989.0" y="45.0"/>
+        <di:waypoint x="1001.0" y="45.0"/>
+        <di:waypoint x="1027.0" y="59.0"/>
+        <di:waypoint x="1039.0" y="59.0"/>
+        <di:waypoint x="989.0" y="45.0"/>
+        <di:waypoint x="1001.0" y="45.0"/>
+        <di:waypoint x="1027.0" y="59.0"/>
+        <di:waypoint x="1039.0" y="59.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element3-element24" id="flowEdgeelement3-element24">
+        <di:waypoint x="229.0" y="65.0"/>
+        <di:waypoint x="241.0" y="65.0"/>
+        <di:waypoint x="267.0" y="90.0"/>
+        <di:waypoint x="279.0" y="90.0"/>
+        <di:waypoint x="229.0" y="65.0"/>
+        <di:waypoint x="241.0" y="65.0"/>
+        <di:waypoint x="267.0" y="90.0"/>
+        <di:waypoint x="279.0" y="90.0"/>
+        <di:waypoint x="229.0" y="65.0"/>
+        <di:waypoint x="241.0" y="65.0"/>
+        <di:waypoint x="267.0" y="90.0"/>
+        <di:waypoint x="279.0" y="90.0"/>
+        <di:waypoint x="229.0" y="65.0"/>
+        <di:waypoint x="241.0" y="65.0"/>
+        <di:waypoint x="267.0" y="90.0"/>
+        <di:waypoint x="279.0" y="90.0"/>
+        <di:waypoint x="229.0" y="65.0"/>
+        <di:waypoint x="241.0" y="65.0"/>
+        <di:waypoint x="267.0" y="90.0"/>
+        <di:waypoint x="279.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element24-element4" id="flowEdgeelement24-element4">
+        <di:waypoint x="349.0" y="90.0"/>
+        <di:waypoint x="361.0" y="90.0"/>
+        <di:waypoint x="374.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="1014.0" y="120.0"/>
+        <di:waypoint x="1027.0" y="69.0"/>
+        <di:waypoint x="1039.0" y="69.0"/>
+        <di:waypoint x="349.0" y="90.0"/>
+        <di:waypoint x="361.0" y="90.0"/>
+        <di:waypoint x="374.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="1014.0" y="120.0"/>
+        <di:waypoint x="1027.0" y="69.0"/>
+        <di:waypoint x="1039.0" y="69.0"/>
+        <di:waypoint x="349.0" y="90.0"/>
+        <di:waypoint x="361.0" y="90.0"/>
+        <di:waypoint x="374.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="1014.0" y="120.0"/>
+        <di:waypoint x="1027.0" y="69.0"/>
+        <di:waypoint x="1039.0" y="69.0"/>
+        <di:waypoint x="349.0" y="90.0"/>
+        <di:waypoint x="361.0" y="90.0"/>
+        <di:waypoint x="374.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="1014.0" y="120.0"/>
+        <di:waypoint x="1027.0" y="69.0"/>
+        <di:waypoint x="1039.0" y="69.0"/>
+        <di:waypoint x="349.0" y="90.0"/>
+        <di:waypoint x="361.0" y="90.0"/>
+        <di:waypoint x="374.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="454.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="574.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="694.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="814.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="894.0" y="120.0"/>
+        <di:waypoint x="1014.0" y="120.0"/>
+        <di:waypoint x="1027.0" y="69.0"/>
+        <di:waypoint x="1039.0" y="69.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element2-element3" id="flowEdgeelement2-element3">
+        <di:waypoint x="149.0" y="60.0"/>
+        <di:waypoint x="161.0" y="60.0"/>
+        <di:waypoint x="187.0" y="60.0"/>
+        <di:waypoint x="199.0" y="60.0"/>
+        <di:waypoint x="149.0" y="60.0"/>
+        <di:waypoint x="161.0" y="60.0"/>
+        <di:waypoint x="187.0" y="60.0"/>
+        <di:waypoint x="199.0" y="60.0"/>
+        <di:waypoint x="149.0" y="60.0"/>
+        <di:waypoint x="161.0" y="60.0"/>
+        <di:waypoint x="187.0" y="60.0"/>
+        <di:waypoint x="199.0" y="60.0"/>
+        <di:waypoint x="149.0" y="60.0"/>
+        <di:waypoint x="161.0" y="60.0"/>
+        <di:waypoint x="187.0" y="60.0"/>
+        <di:waypoint x="199.0" y="60.0"/>
+        <di:waypoint x="149.0" y="60.0"/>
+        <di:waypoint x="161.0" y="60.0"/>
+        <di:waypoint x="187.0" y="60.0"/>
+        <di:waypoint x="199.0" y="60.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element4-element5" id="flowEdgeelement4-element5">
+        <di:waypoint x="1069.0" y="64.0"/>
+        <di:waypoint x="1081.0" y="64.0"/>
+        <di:waypoint x="1107.0" y="62.0"/>
+        <di:waypoint x="1119.0" y="62.0"/>
+        <di:waypoint x="1069.0" y="64.0"/>
+        <di:waypoint x="1081.0" y="64.0"/>
+        <di:waypoint x="1107.0" y="62.0"/>
+        <di:waypoint x="1119.0" y="62.0"/>
+        <di:waypoint x="1069.0" y="64.0"/>
+        <di:waypoint x="1081.0" y="64.0"/>
+        <di:waypoint x="1107.0" y="62.0"/>
+        <di:waypoint x="1119.0" y="62.0"/>
+        <di:waypoint x="1069.0" y="64.0"/>
+        <di:waypoint x="1081.0" y="64.0"/>
+        <di:waypoint x="1107.0" y="62.0"/>
+        <di:waypoint x="1119.0" y="62.0"/>
+        <di:waypoint x="1069.0" y="64.0"/>
+        <di:waypoint x="1081.0" y="64.0"/>
+        <di:waypoint x="1107.0" y="62.0"/>
+        <di:waypoint x="1119.0" y="62.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element0-element2" id="flowEdgeelement0-element2">
+        <di:waypoint x="25.0" y="60.0"/>
+        <di:waypoint x="41.0" y="60.0"/>
+        <di:waypoint x="67.0" y="60.0"/>
+        <di:waypoint x="79.0" y="60.0"/>
+        <di:waypoint x="25.0" y="60.0"/>
+        <di:waypoint x="41.0" y="60.0"/>
+        <di:waypoint x="67.0" y="60.0"/>
+        <di:waypoint x="79.0" y="60.0"/>
+        <di:waypoint x="25.0" y="60.0"/>
+        <di:waypoint x="41.0" y="60.0"/>
+        <di:waypoint x="67.0" y="60.0"/>
+        <di:waypoint x="79.0" y="60.0"/>
+        <di:waypoint x="25.0" y="60.0"/>
+        <di:waypoint x="41.0" y="60.0"/>
+        <di:waypoint x="67.0" y="60.0"/>
+        <di:waypoint x="79.0" y="60.0"/>
+        <di:waypoint x="25.0" y="60.0"/>
+        <di:waypoint x="41.0" y="60.0"/>
+        <di:waypoint x="67.0" y="60.0"/>
+        <di:waypoint x="79.0" y="60.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="element5-element1" id="flowEdgeelement5-element1">
+        <di:waypoint x="1189.0" y="62.0"/>
+        <di:waypoint x="1201.0" y="62.0"/>
+        <di:waypoint x="1227.0" y="62.0"/>
+        <di:waypoint x="1241.0" y="62.0"/>
+        <di:waypoint x="1189.0" y="62.0"/>
+        <di:waypoint x="1201.0" y="62.0"/>
+        <di:waypoint x="1227.0" y="62.0"/>
+        <di:waypoint x="1241.0" y="62.0"/>
+        <di:waypoint x="1189.0" y="62.0"/>
+        <di:waypoint x="1201.0" y="62.0"/>
+        <di:waypoint x="1227.0" y="62.0"/>
+        <di:waypoint x="1241.0" y="62.0"/>
+        <di:waypoint x="1189.0" y="62.0"/>
+        <di:waypoint x="1201.0" y="62.0"/>
+        <di:waypoint x="1227.0" y="62.0"/>
+        <di:waypoint x="1241.0" y="62.0"/>
+        <di:waypoint x="1189.0" y="62.0"/>
+        <di:waypoint x="1201.0" y="62.0"/>
+        <di:waypoint x="1227.0" y="62.0"/>
+        <di:waypoint x="1241.0" y="62.0"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
